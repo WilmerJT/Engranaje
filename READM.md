@@ -345,3 +345,26 @@ Abrir en el navegador
 ```
 http://localhost:3000
 ```
+
+## 🚀 Actualizaciones Recientes (Backend & Exportación CAD)
+
+### 🛠️ Implementación del Generador de Scripts para Fusion 360
+
+Se integró la arquitectura necesaria en Node.js para transformar las dimensiones paramétricas del engranaje en código ejecutable nativo de **Autodesk Fusion 360** en Python.
+
+#### Módulos y Cambios Desarrollados:
+
+1. **Plantilla Base en Python (`templates/fusionTemplate.py`):**
+   - Creación del script ejecutable compatible con la API de Autodesk Fusion 360 (`adsk.core` y `adsk.fusion`).
+   - Marcado de variables dinámicas (`{{MODULE}}`, `{{TEETH}}`, `{{FACE_WIDTH}}`, `{{BORE_DIAMETER}}`, `{{OUTER_DIAMETER}}`).
+   - Implementación de conversión implícita de unidades (conversión de milímetros de taller a centímetros requeridos por la API interna de Fusion 360).
+   - Generación automática del boceto 2D en el plano XY y operación de extrusión 3D de la pieza.
+
+2. **Servicio de Compilación (`services/fusionGenerator.js`):**
+   - Lectura asíncrona y procesamiento del archivo de plantilla en el servidor.
+   - Algoritmo de inyección y reemplazo de parámetros calculados.
+   - Generación en memoria del archivo Python final formateado.
+
+3. **Integración en Controlador y API (`controllers/gearController.js`):**
+   - Actualización del endpoint `POST /api/generate-script`.
+   - Configuración de cabeceras HTTP (`Content-Type: text/x-python` y `Content-Disposition`) para forzar la descarga automática del archivo `.py` (`gear_generator.py`) desde la web.
