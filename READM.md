@@ -383,12 +383,11 @@ Aplicación web basada en **Node.js** y **Express** para la configuración de en
 Actualmente el proyecto cuenta con un backend completamente funcional e integrado con el entorno de modelado 3D de Fusion 360.
 
 ### ✅ Funcionalidades Desarrolladas & Probadass:
-- **API Backend (Express):** Endpoint `POST /api/generate-script` que recibe los parámetros del engranaje en formato JSON.
-- **Cálculo Geométrico Dinámico:** Lógica matemática (`gearMath.js`) para calcular el diámetro primitivo, diámetro exterior y dimensiones proporcionales de chaveteros/ejes según la norma.
-- **Inyección de Código Python:** Generador de scripts (`fusionGenerator.js`) que automatiza la creación de bocetos 2D y la extrusión 3D en la API de Fusion 360.
-- **Escala Dinámica Confirmada:** Se validó la generación y ejecución directa en Fusion 360 para diferentes combinaciones de módulo, número de dientes, ancho de cara y diámetro de eje.
-
----
+- **API Backend (Express):** Endpoint `POST /api/generate-script` para procesar parámetros dinámicos y generar scripts Python en tiempo real.
+- **Interfaz Web Interactiva (HTML/CSS/JS):** Formulario intuitivo con actualización de cálculos geométricos en tiempo real (Diámetro Primitivo y Diámetro Exterior).
+- **Visor 3D Dinámico (Three.js):** Integración de entorno gráfico 3D interactivo que renderiza la vista previa del engranaje con rotación, zoom y adaptación proporcional a los inputs del usuario.
+- **Inyección de Código para Fusion 360:** Generador automatizado de scripts `.py` para crear la geometría 3D directamente desde el menú *Scripts and Add-Ins* de Autodesk Fusion 360.
+- **Validación Local:** Descarga directa desde el navegador del archivo `.py` listo para importar en el software CAD.
 
 ## 📐 Parámetros Manejados
 
