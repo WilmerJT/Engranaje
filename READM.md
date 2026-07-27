@@ -346,6 +346,9 @@ Abrir en el navegador
 http://localhost:3000
 ```
 
+------------------------------ bebe -----------------------
+
+
 ## 🚀 Actualizaciones Recientes (Backend & Exportación CAD)
 
 ### 🛠️ Implementación del Generador de Scripts para Fusion 360
@@ -409,3 +412,159 @@ Invoke-RestMethod -Uri "http://localhost:3000/api/generate-script" `
   -ContentType "application/json" `
   -Body '{"module":2,"teeth":20,"width":12,"bore":10}' `
   -OutFile "gear_test.py"
+
+  ----------------------------- señor del perfil  ----------------------
+
+  ---
+
+# 🔄 Refactorización de la Arquitectura del Proyecto
+
+Con el avance del desarrollo se realizó una reorganización del backend para separar responsabilidades entre los diferentes módulos del sistema. El objetivo fue evitar duplicación de código, facilitar el mantenimiento y preparar la aplicación para la integración del frontend y la generación de modelos 3D en Fusion 360.
+
+## ✅ Reorganización del motor matemático (`services/gearMath.js`)
+
+El archivo `gearMath.js` quedó dedicado exclusivamente a la geometría y cálculos matemáticos del engranaje.
+
+### Funcionalidades implementadas
+
+- Cálculo de dimensiones principales del engranaje:
+  - Diámetro primitivo.
+  - Radio primitivo.
+  - Diámetro exterior.
+  - Radio exterior.
+  - Diámetro de raíz.
+  - Radio de raíz.
+  - Diámetro base.
+  - Radio base.
+  - Paso circular.
+  - Espesor del diente.
+  - Addendum.
+  - Dedendum.
+  - Altura total.
+
+- Implementación de la ecuación paramétrica de la involuta.
+- Generación de la curva evolvente mediante discretización.
+- Rotación de puntos y curvas.
+- Construcción preliminar del perfil del diente.
+- Construcción preliminar del engranaje completo mediante repetición circular.
+- Cálculo de los ángulos característicos del engranaje.
+- Posicionamiento de la involuta respecto al eje del diente.
+- Implementación de funciones auxiliares para futuras operaciones geométricas.
+
+---
+
+## 🏗 Separación de la geometría mecánica (`services/geometry3D.js`)
+
+Se creó un nuevo módulo independiente encargado únicamente de los elementos mecánicos adicionales utilizados durante la generación del modelo 3D.
+
+Actualmente implementa:
+
+- Cálculo del diámetro de la maza (Hub).
+- Cálculo del ancho del chavetero.
+- Cálculo de la profundidad del chavetero.
+
+Esta separación permite mantener el motor matemático completamente independiente de la geometría utilizada por Fusion 360.
+
+---
+
+## 🔄 Reestructuración del controlador (`controllers/gearController.js`)
+
+Se reorganizó completamente el flujo de generación del script.
+
+El nuevo proceso es:
+
+```text
+Solicitud HTTP
+        │
+        ▼
+Lectura de parámetros enviados por el usuario
+        │
+        ▼
+Cálculo de dimensiones geométricas
+        │
+        ▼
+Construcción del engranaje
+        │
+        ▼
+Cálculo de maza y chavetero
+        │
+        ▼
+Integración de toda la información
+        │
+        ▼
+Generación dinámica del script Python
+        │
+        ▼
+Descarga automática del archivo .py
+```
+
+El controlador ahora funciona únicamente como orquestador entre los distintos servicios.
+
+---
+
+## ⚙️ Mejoras en el generador para Fusion 360 (`services/fusionGenerator.js`)
+
+Se actualizó el generador para trabajar con la nueva arquitectura modular.
+
+Las principales mejoras fueron:
+
+- Separación entre cálculos matemáticos y generación del script.
+- Lectura de parámetros directamente desde el objeto `dimensions`.
+- Integración de la información de maza y chavetero calculada por `geometry3D.js`.
+- Generación dinámica del archivo Python utilizando una plantilla base.
+
+---
+
+## 🧹 Eliminación de código duplicado
+
+Durante la refactorización se eliminaron varios problemas presentes en versiones anteriores:
+
+- Eliminación de múltiples definiciones de `buildGear()`.
+- Eliminación de múltiples `module.exports`.
+- Eliminación de funciones duplicadas de rotación.
+- Separación de responsabilidades entre módulos.
+- Centralización de todos los cálculos geométricos en `gearMath.js`.
+
+---
+
+## 📁 Nueva organización de servicios
+
+```text
+services/
+│
+├── gearMath.js
+│      Motor matemático del engranaje
+│
+├── geometry3D.js
+│      Cálculos de maza y chavetero
+│
+└── fusionGenerator.js
+       Generación del script Python para Fusion 360
+```
+
+---
+
+## ✅ Beneficios obtenidos
+
+Con esta reorganización se consiguió:
+
+- Código más modular.
+- Eliminación de duplicación de cálculos.
+- Mayor facilidad para realizar mantenimiento.
+- Mejor integración entre backend y Fusion 360.
+- Base preparada para incorporar la vista previa 2D mediante SVG o Canvas.
+- Arquitectura escalable para futuras versiones con engranajes helicoidales, cónicos u otros perfiles.
+
+---
+
+## 📌 Estado actual del desarrollo
+
+| Módulo | Estado |
+|---------|:------:|
+| Setup del proyecto | ✅ Completado |
+| Motor matemático del engranaje | ✅ Avanzado |
+| Geometría 3D (Maza y Chavetero) | ✅ Completado |
+| Backend/API | ✅ Integrado |
+| Generador Fusion 360 | ✅ Integrado |
+| Vista previa SVG/Canvas | 🚧 Pendiente |
+| Perfil de involuta completo (arcos de cabeza y raíz) | 🚧 En desarrollo |
