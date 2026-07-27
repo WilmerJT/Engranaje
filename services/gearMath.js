@@ -1,29 +1,29 @@
-function calculateDimensions(module, teeth, pressureAngle = 20) {
+function calculateDimensions(mod, teeth, pressureAngle = 20) {
 
     const alpha = pressureAngle * Math.PI / 180;
 
-    const pitchDiameter = module * teeth;
+    const pitchDiameter = mod * teeth;
     const pitchRadius = pitchDiameter / 2;
 
-    const outsideDiameter = module * (teeth + 2);
+    const outsideDiameter = mod * (teeth + 2);
     const outsideRadius = outsideDiameter / 2;
 
-    const rootDiameter = module * (teeth - 2.5);
+    const rootDiameter = mod * (teeth - 2.5);
     const rootRadius = rootDiameter / 2;
 
     const baseDiameter = pitchDiameter * Math.cos(alpha);
     const baseRadius = baseDiameter / 2;
 
-    const circularPitch = Math.PI * module;
+    const circularPitch = Math.PI * mod;
     const toothThickness = circularPitch / 2;
     const toothAngle = toothThickness / pitchRadius;
 
-    const addendum = module;
-    const dedendum = 1.25 * module;
+    const addendum = mod;
+    const dedendum = 1.25 * mod;
     const wholeDepth = addendum + dedendum;
 
     return {
-        module,
+        module:mod,
         teeth,
         pressureAngle,
         toothAngle,
@@ -46,17 +46,12 @@ function calculateDimensions(module, teeth, pressureAngle = 20) {
 
 function involutePoint(baseRadius, t) {
 
-    const x = baseRadius * (
-        Math.cos(t) + t * Math.sin(t)
-    );
+    const x = baseRadius * (Math.cos(t) + t * Math.sin(t));
 
-    const y = baseRadius * (
-        Math.sin(t) - t * Math.cos(t)
-    );
+    const y = baseRadius * (Math.sin(t) - t * Math.cos(t));
 
     return {
-        x,
-        y
+        x,y
     };
 
 }
@@ -65,17 +60,13 @@ function generateInvolute(baseRadius, outsideRadius, steps = 30) {
 
     const points = [];
 
-    const tMax = Math.sqrt(
-        Math.pow(outsideRadius / baseRadius, 2) - 1
-    );
+    const tMax = Math.sqrt(Math.pow(outsideRadius / baseRadius, 2) - 1);
 
     for (let i = 0; i <= steps; i++) {
 
         const t = (tMax * i) / steps;
 
-        points.push(
-            involutePoint(baseRadius, t)
-        );
+        points.push(involutePoint(baseRadius, t));
 
     }
 
@@ -85,11 +76,9 @@ function generateInvolute(baseRadius, outsideRadius, steps = 30) {
 
 function rotatePoint(point, angle) {
 
-    const x = point.x * Math.cos(angle) -
-              point.y * Math.sin(angle);
+    const x = point.x * Math.cos(angle) - point.y * Math.sin(angle);
 
-    const y = point.x * Math.sin(angle) +
-              point.y * Math.cos(angle);
+    const y = point.x * Math.sin(angle) + point.y * Math.cos(angle);
 
     return { x, y };
 
@@ -97,51 +86,36 @@ function rotatePoint(point, angle) {
 
 function rotateCurve(points, angle) {
 
-    return points.map(point =>
-        rotatePoint(point, angle)
-    );
+    return points.map(point => rotatePoint(point, angle));
 
 }
 
 function buildToothSides(dimensions){
 
     const leftSide =
-        generateInvolute(
-            dimensions.baseRadius,
-            dimensions.outsideRadius
-        );
+        generateInvolute( dimensions.baseRadius,dimensions.outsideRadius);
 
     const rightSide =
-        rotateCurve(
-            leftSide,
-            dimensions.toothAngle
-        );
+        rotateCurve( leftSide, dimensions.toothAngle);
 
     return {
 
-        leftSide,
-
-        rightSide
+        leftSide, rightSide
 
     };
 
 }
 
-function mirrorInvolute(){}
 
 function buildTooth(dimensions) {
 
-    const { leftSide, rightSide } =
-        buildToothSides(dimensions);
+    const { leftSide, rightSide } = buildToothSides(dimensions);
 
-    const rightReversed =
-        [...rightSide].reverse();
+    const rightReversed = [...rightSide].reverse();
 
     return [
 
-        ...leftSide,
-
-        ...rightReversed
+        ...leftSide, ...rightReversed
 
     ];
 
@@ -149,32 +123,24 @@ function buildTooth(dimensions) {
 
 function rotateTooth(toothPoints, angle) {
 
-    return toothPoints.map(point =>
-        rotatePoint(point, angle)
-    );
+    return toothPoints.map(point => rotatePoint(point, angle));
 
 }
 
 function buildGear(dimensions) {
 
-    const tooth =
-        buildTooth(dimensions);
+    const tooth = buildTooth(dimensions);
 
-    const stepAngle =
-        2 * Math.PI / dimensions.teeth;
+    const stepAngle = 2 * Math.PI / dimensions.teeth;
 
     const gearPoints = [];
 
     for(let i=0;i<dimensions.teeth;i++){
 
-        const angle =
-            i * stepAngle;
+        const angle = i * stepAngle;
 
         const rotated =
-            rotateTooth(
-                tooth,
-                angle
-            );
+            rotateTooth( tooth,  angle);
 
         gearPoints.push(...rotated);
 
@@ -182,11 +148,7 @@ function buildGear(dimensions) {
 
     return {
 
-        dimensions,
-
-        toothPoints: tooth,
-
-        gearPoints
+        dimensions, toothPoints: tooth, gearPoints, stepAngle
 
     };
 
@@ -200,27 +162,18 @@ function calculateAngles(dimensions){
     return{
 
         pitchAngle, 
-
         halfToothAngle,
-
         gapAngle
 
     };
 
 }
 
-function rotateCurveAroundOrigin(curve,angle){
-
-    return curve.map(point=>rotatePoint(point,angle));
-
-}
-
-function positionInvolute(curve,dimensions){ 
+function positionInvolute(curve, dimensions){
 
     const angles = calculateAngles(dimensions);
-    const positioned = rotateCurveAroundOrigin(curve,-angles.halfToothAngle);
 
-    return positioned;
+    return rotateCurve(curve,-angles.halfToothAngle);
 
 }
 
@@ -235,76 +188,18 @@ function mirrorCurve(curve){
 module.exports = {
 
     calculateDimensions,
-
     involutePoint,
-
     generateInvolute,
-
     rotatePoint,
-
     rotateCurve,
-
     rotateTooth,
-
-    mirrorInvolute,
-
     buildToothSides,
-
     buildTooth,
-
     buildGear,
-
     calculateAngles,
-
-    rotateCurveAroundOrigin,
-
     positionInvolute,
-
     mirrorCurve
 
+};
 
-};/**
- * Calcula la geometría 3D y elementos mecánicos adicionales (Maza y Chavetero)
- */
-function calculateHubAndKeyway(boreDiameter) {
-  const dEje = parseFloat(boreDiameter) || 0;
 
-  if (dEje <= 0) {
-    return { hubDiameter: 0, keywayWidth: 0, keywayDepth: 0 };
-  }
-
-  // Fórmulas de taller (A.L. Casillas)
-  const hubDiameter = 1.6 * dEje;       // Diámetro exterior de la maza (Dm)
-  const keywayWidth = dEje / 4;         // Ancho de la chaveta (b)
-  const keywayDepth = 0.6 * keywayWidth; // Profundidad de la chaveta (t2)
-
-  return {
-    hubDiameter,
-    keywayWidth,
-    keywayDepth
-  };
-}
-
-// Extensión para integrar en el buildGear principal
-function buildGear(params) {
-  // ... (Tus cálculos de diámetro primitivo, exterior, etc.)
-  
-  const bore = parseFloat(params.bore) || 12; // Diámetro de eje por defecto 12mm
-  const width = parseFloat(params.width) || 15; // Grosor/ancho de cara
-  
-  const hubAndKeyway = calculateHubAndKeyway(bore);
-
-  return {
-    dimensions: {
-      module: parseFloat(params.module) || 2,
-      teeth: parseInt(params.teeth) || 20,
-      pressureAngle: parseFloat(params.pressureAngle) || 20,
-      outerDiameter: (parseFloat(params.module) || 2) * ((parseInt(params.teeth) || 20) + 2),
-      width,
-      bore,
-      ...hubAndKeyway
-    }
-  };
-}
-
-module.exports = { buildGear, calculateHubAndKeyway };
