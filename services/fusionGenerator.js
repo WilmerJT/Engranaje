@@ -24,8 +24,9 @@ function generatePythonScript(gearData) {
     .replace('{{TEETH}}', dimensions.teeth)
     .replace('{{FACE_WIDTH}}', faceWidth)
     .replace('{{BORE_DIAMETER}}', boreDiameter)
-    .replace('{{OUTER_DIAMETER}}', dimensions.outerDiameter);
-
+    .replace('{{OUTER_DIAMETER}}', dimensions.outerDiameter)
+    .replace('{{KEYWAY_WIDTH}}', dimensions.keywayWidth || 0)
+    .replace('{{KEYWAY_DEPTH}}', dimensions.keywayDepth || 0);
   return template;
 }
 

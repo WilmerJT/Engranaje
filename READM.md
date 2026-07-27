@@ -368,3 +368,44 @@ Se integró la arquitectura necesaria en Node.js para transformar las dimensione
 3. **Integración en Controlador y API (`controllers/gearController.js`):**
    - Actualización del endpoint `POST /api/generate-script`.
    - Configuración de cabeceras HTTP (`Content-Type: text/x-python` y `Content-Disposition`) para forzar la descarga automática del archivo `.py` (`gear_generator.py`) desde la web.
+
+   # ⚙️ Generador Paramétrico de Engranajes 3D (Node.js + Fusion 360)
+
+Aplicación web basada en **Node.js** y **Express** para la configuración de engranajes rectos. El sistema calcula dimensiones geométricas paramétricas y genera scripts dinámicos en Python para importar el modelo 3D directamente en **Autodesk Fusion 360**.
+
+---
+
+## 🚀 Estado Actual del Proyecto
+
+Actualmente el proyecto cuenta con un backend completamente funcional e integrado con el entorno de modelado 3D de Fusion 360.
+
+### ✅ Funcionalidades Desarrolladas & Probadass:
+- **API Backend (Express):** Endpoint `POST /api/generate-script` que recibe los parámetros del engranaje en formato JSON.
+- **Cálculo Geométrico Dinámico:** Lógica matemática (`gearMath.js`) para calcular el diámetro primitivo, diámetro exterior y dimensiones proporcionales de chaveteros/ejes según la norma.
+- **Inyección de Código Python:** Generador de scripts (`fusionGenerator.js`) que automatiza la creación de bocetos 2D y la extrusión 3D en la API de Fusion 360.
+- **Escala Dinámica Confirmada:** Se validó la generación y ejecución directa en Fusion 360 para diferentes combinaciones de módulo, número de dientes, ancho de cara y diámetro de eje.
+
+---
+
+## 📐 Parámetros Manejados
+
+| Parámetro | Variable | Descripción |
+| :--- | :--- | :--- |
+| **Módulo** | `module` | Define el tamaño de los dientes y escala general. |
+| **Dientes** | `teeth` | Número de dientes del engranaje ($Z$). |
+| **Ancho de Cara** | `width` | Espesor / Profundidad de la extrusión 3D (mm). |
+| **Diámetro del Eje** | `bore` | Diámetro del barreno central (mm). |
+| **Chavetero** | `keyway` | Dimensionado automático de la muesca de sujeción. |
+
+---
+
+## 🛠️ Pruebas de Funcionamiento Local
+
+Para probar la generación del script `.py` desde la terminal sin interfaz visual:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3000/api/generate-script" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body '{"module":2,"teeth":20,"width":12,"bore":10}' `
+  -OutFile "gear_test.py"
