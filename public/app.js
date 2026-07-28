@@ -43,44 +43,108 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   let gearMesh = null;
 
-  function createGear3D(outerRadius, boreRadius, width) {
-    // Si ya existe un objeto en la escena, lo borramos antes de crear el nuevo
-    if (gearMesh) scene.remove(gearMesh);
+  function createGear3D(gearPoints, width, bore) {
 
-    // Creamos la forma 2D (Círculo exterior con agujero para el eje)
-    const shape = new THREE.Shape();
-    shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+    if (gearMesh) {
 
-    if (boreRadius > 0) {
-      const holePath = new THREE.Path();
-      holePath.absarc(0, 0, boreRadius, 0, Math.PI * 2, true);
-      shape.holes.push(holePath);
+      scene.remove(gearMesh);
+
+      gearMesh.geometry.dispose();
+
+      gearMesh.material.dispose();
     }
 
-    // Extrusión 3D (Ancho del engranaje)
-    const extrudeSettings = {
-      depth: width,
-      bevelEnabled: true,
-      bevelSegments: 2,
-      steps: 1,
-      bevelSize: 0.5,
-      bevelThickness: 0.5
-    };
+    if (!gearPoints || gearPoints.length === 0) {
 
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      console.error("No llegaron puntos del engranaje");
 
-    // Material metálico tipo Fusion 360
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x3a86ff, // Azul metálico
-      metalness: 0.5,
-      roughness: 0.3
+      return;
+
+    }
+
+    const shape = new THREE.Shape();
+
+    shape.moveTo(gearPoints[0].x, gearPoints[0].y);
+
+    for (let i = 1; i < gearPoints.length; i++) {shape.lineTo(gearPoints[i].x,gearPoints[i].y);}
+
+    shape.closePath();
+
+    if (bore > 0) {const hole = new THREE.Path(); hole.absarc(0, 0, bore / 2, 0, Math.PI * 2, true  );
+
+      shape.holes.push(hole);
+
+    }
+
+    const geometry = new THREE.ExtrudeGeometry(
+
+    shape,
+
+      {
+
+          depth: width,
+
+          steps: 1,
+
+          bevelEnabled: false,
+
+          curveSegments: 40
+
+      }
+
+    );
+
+    const material =
+    new THREE.MeshStandardMaterial({
+
+        color:0x3a86ff,
+
+        metalness:0.5,
+
+        roughness:0.3,
+
+        side:THREE.DoubleSide
+
     });
 
-    gearMesh = new THREE.Mesh(geometry, material);
+    gearMesh = new THREE.Mesh(
 
-    // Centrar la extrusión en el origen
+        geometry,
+
+        material
+
+    );
+
+    const box = new THREE.Box3().setFromObject(gearMesh);
+
+    const size = box.getSize(new THREE.Vector3());
+
+    const maxDimension = Math.max(
+
+        size.x,
+
+        size.y,
+
+        size.z
+
+    );
+
+    const scale = 40 / maxDimension;
+
+    gearMesh.scale.set(scale, scale, scale);
+
+    geometry.computeBoundingBox();
+
     geometry.center();
+
+    geometry.computeVertexNormals();
+
     scene.add(gearMesh);
+
+    camera.lookAt(0,0,0);
+
+    controls.update();
+
   }
 
   // -------------------------------------------------------------
@@ -116,22 +180,61 @@ document.addEventListener('DOMContentLoaded', () => {
   const calcPitch = document.getElementById('calcPitch');
   const calcOuter = document.getElementById('calcOuter');
 
-  function updateAll() {
-    const m = parseFloat(moduleInput.value) || 1;
-    const z = parseInt(teethInput.value) || 10;
-    const width = parseFloat(widthInput.value) || 10;
-    const bore = parseFloat(boreInput.value) || 0;
+  async function updateAll() {
 
-    const pitchDiameter = m * z;
-    const outerDiameter = m * (z + 2);
+    const payload = {
 
-    calcPitch.textContent = `${pitchDiameter.toFixed(1)} mm`;
-    calcOuter.textContent = `${outerDiameter.toFixed(1)} mm`;
+        module: parseFloat(moduleInput.value),
 
-    // Re-dibujar el engranaje 3D dinámicamente según los inputs
-    const outerRadius = outerDiameter / 2;
-    const boreRadius = bore / 2;
-    createGear3D(outerRadius, boreRadius, width);
+        teeth: parseInt(teethInput.value),
+
+        width: parseFloat(widthInput.value),
+
+        bore: parseFloat(boreInput.value)
+
+    };
+
+    try{
+
+        const response =
+            await fetch("/api/preview",{
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(payload)
+
+            });
+
+        const gear =
+            await response.json();
+
+        calcPitch.textContent =
+            gear.dimensions.pitchDiameter.toFixed(1) + " mm";
+
+        calcOuter.textContent =
+            gear.dimensions.outsideDiameter.toFixed(1) + " mm";
+
+        createGear3D(
+
+            gear.gearPoints,
+
+            payload.width,
+
+            payload.bore
+
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
 
   }
 

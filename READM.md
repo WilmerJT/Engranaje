@@ -567,3 +567,127 @@ Con esta reorganización se consiguió:
 | Generador Fusion 360 | ✅ Integrado |
 | Vista previa SVG/Canvas | 🚧 Pendiente |
 | Perfil de involuta completo (arcos de cabeza y raíz) | 🚧 En desarrollo |
+
+
+# 🚀 Actualización – Integración del Motor Matemático con la Vista Previa 3D
+
+En esta actualización se integró el motor matemático de generación de engranajes con el visor 3D desarrollado en Three.js. La vista previa dejó de utilizar un cilindro extruido como representación simplificada y ahora genera el perfil del engranaje a partir de la geometría calculada por el backend.
+
+---
+
+## ⚙️ Mejoras Implementadas
+
+### Integración del motor matemático
+
+Se modificó el flujo entre el backend y el frontend para que el visor utilice directamente los puntos generados por el motor matemático (`gearMath.js`).
+
+Nuevo flujo de trabajo:
+
+Formulario Web
+↓
+API `/api/preview`
+↓
+`gearMath.js`
+↓
+Cálculo completo de la geometría
+↓
+Lista de puntos del perfil (`gearPoints`)
+↓
+Three.js
+↓
+Vista previa 3D
+
+---
+
+## 📐 Construcción del perfil del engranaje
+
+Se implementó la generación completa del contorno del engranaje mediante elementos geométricos independientes:
+
+- Involuta izquierda.
+- Involuta derecha.
+- Arco de cabeza del diente.
+- Arco de raíz entre dientes.
+- Perfil completo del diente.
+- Contorno completo del engranaje.
+
+Funciones incorporadas o modificadas:
+
+- `generateInvolute()`
+- `positionInvolute()`
+- `buildOppositeInvolute()`
+- `generateTipArc()`
+- `generateRootArc()`
+- `buildTooth()`
+- `buildGearOutline()`
+
+---
+
+## 📊 Incremento en la resolución geométrica
+
+Con el objetivo de obtener un perfil más suave y reducir la apariencia poligonal del modelo, se aumentó el número de puntos utilizados en la construcción de las curvas.
+
+| Elemento | Antes | Ahora |
+|----------|------:|------:|
+| Involuta | 80 puntos | 120 puntos |
+| Arco de cabeza | 12 puntos | 30 puntos |
+| Arco de raíz | 12 puntos | 30 puntos |
+
+Estas modificaciones permiten generar un perfil considerablemente más suave tanto en el visor 3D como en la exportación del modelo.
+
+---
+
+## 🖥️ Integración con Three.js
+
+El visor fue actualizado para dejar de generar un cilindro extruido y comenzar a utilizar el perfil real calculado por el backend.
+
+Principales cambios:
+
+- Construcción dinámica de un `THREE.Shape` a partir del contorno calculado.
+- Extrusión automática del perfil mediante `THREE.ExtrudeGeometry`.
+- Generación del agujero central utilizando `THREE.Path`.
+- Actualización automática del modelo al modificar cualquier parámetro del formulario.
+- Conservación de controles interactivos mediante `OrbitControls`.
+
+---
+
+## 🔄 Comunicación Backend–Frontend
+
+Se modificó el endpoint de vista previa para enviar la geometría completa al navegador.
+
+El endpoint:
+
+ahora devuelve:
+
+- Dimensiones calculadas.
+- Lista completa de puntos del contorno.
+- Información necesaria para renderizar el engranaje en Three.js.
+
+---
+
+## 🧪 Proceso de validación
+
+Durante esta actualización se realizaron pruebas para verificar:
+
+- Simetría entre involuta izquierda y derecha.
+- Correcta generación de los arcos de cabeza.
+- Continuidad del arco de raíz.
+- Cierre completo del perfil.
+- Correcta creación del agujero del eje.
+- Extrusión sin autointersecciones.
+- Visualización correcta en Three.js.
+
+También se creó el archivo de pruebas `testGear.js`, utilizado para inspeccionar los puntos generados por el motor matemático y validar la geometría antes de renderizarla.
+
+---
+
+## ✅ Resultado
+
+La aplicación ahora es capaz de:
+
+- Calcular la geometría completa de un engranaje recto de involuta.
+- Construir el perfil completo mediante cálculos paramétricos.
+- Generar una vista previa 3D basada en la geometría real.
+- Actualizar dinámicamente el modelo al modificar los parámetros del formulario.
+- Mantener compatibilidad con la generación del script para Autodesk Fusion 360.
+
+Esta actualización representa la transición desde una visualización simplificada hacia un visor basado en la geometría matemática real del engranaje, proporcionando una representación mucho más cercana al modelo CAD final.
