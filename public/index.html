@@ -3,64 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Engranajes 3D</title>
+  <title>EngranajeLab - Generador 3D</title>
   <link rel="stylesheet" href="style.css">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
+
+  <header class="top-bar">
+    <div class="logo-title">
+      <h1>⚙️ EngranajeLab</h1>
+    </div>
+
+    <nav class="nav-links">
+      <button id="navHomeBtn" class="nav-btn active">🏠 Inicio</button>
+      <button id="navGeneratorBtn" class="nav-btn">🛠️ Crear Engranaje</button>
+    </nav>
+
+    <div id="user-section">
+      <button id="openAuthBtn" class="btn-secondary">🔑 Iniciar Sesión / Registrarse</button>
+      <span id="userInfo" style="display: none; color: #fff; font-weight: bold; margin-right: 10px;"></span>
+      <button id="logoutBtn" class="btn-danger" style="display: none;">Cerrar Sesión</button>
+    </div>
+  </header>
+
   <div class="container">
-    <header>
-      <h1>⚙️ Generador Paramétrico de Engranajes</h1>
-      <p>Vista previa 3D en vivo y exportación para Autodesk Fusion 360</p>
-    </header>
 
-    <main class="content">
-      <form id="gearForm" class="card">
-        <h2>Parámetros Geométricos</h2>
+    <section id="homeSection" class="view-section">
+      <div class="hero-card">
+        <h2>Bienvenido a EngranajeLab ⚙️</h2>
+        <p class="hero-description">
+          La herramienta paramétrica diseñada para ingenieros, diseñadores y entusiastas de la impresión 3D y el modelado CAD.
+        </p>
 
-        <div class="form-group">
-          <label for="module">Módulo (m):</label>
-          <input type="number" id="module" name="module" value="2" step="0.5" min="0.5" required>
-        </div>
-
-        <div class="form-group">
-          <label for="teeth">Número de Dientes (Z):</label>
-          <input type="number" id="teeth" name="teeth" value="20" min="6" max="200" required>
-        </div>
-
-        <div class="form-group">
-          <label for="width">Ancho de Cara (mm):</label>
-          <input type="number" id="width" name="width" value="12" min="1" required>
-        </div>
-
-        <div class="form-group">
-          <label for="bore">Diámetro del Eje (mm):</label>
-          <input type="number" id="bore" name="bore" value="10" min="0" required>
-        </div>
-
-        <button type="submit" class="btn-primary">
-          📥 Descargar Script Python (.py)
-        </button>
-      </form>
-
-      <div class="card viewer-card">
-        <h2>Vista Previa 3D (Usa el ratón para girar/zoom)</h2>
-        <div id="canvas-container"></div>
-        
-        <div class="stat-grid">
-          <div class="stat-box">
-            <span class="label">Diámetro Primitivo:</span>
-            <span id="calcPitch" class="value">40 mm</span>
+        <div class="features-grid">
+          <div class="feature-box">
+            <h3>🎯 Modelado Preciso</h3>
+            <p>Calcula automáticamente los diámetros primitivos y exteriores a partir del módulo y número de dientes.</p>
           </div>
-          <div class="stat-box">
-            <span class="label">Diámetro Exterior:</span>
-            <span id="calcOuter" class="value">44 mm</span>
+          <div class="feature-box">
+            <h3>👁️ Vista Previa 3D</h3>
+            <p>Visualiza interactiva y en tiempo real el engranaje antes de generar cualquier archivo.</p>
           </div>
+          <div class="feature-box">
+            <h3>🚀 Exportación a Fusion 360</h3>
+            <p>Obtén un script de Python listo para ejecutar en Autodesk Fusion 360 y generar tu sólido 3D editable.</p>
+          </div>
+        </div>
+
+        <div class="cta-container">
+          <button id="startDesigningBtn" class="btn-primary cta-btn">✨ Diseñar mi primer engranaje</button>
         </div>
       </div>
-    </main>
+    </section>
+
+    <section id="generatorSection" class="view-section" style="display: none;">
+      <p class="subtitle">Vista previa 3D en vivo y exportación para Autodesk Fusion 360</p>
+
+      <main class="content">
+        <form id="gearForm" class="card">
+          <h2>Parámetros Geométricos</h2>
+
+          <div class="form-group">
+            <label for="module">Módulo (m):</label>
+            <input type="number" id="module" name="module" value="2" step="0.5" min="0.5" required>
+          </div>
+
+          <div class="form-group">
+            <label for="teeth">Número de Dientes (Z):</label>
+            <input type="number" id="teeth" name="teeth" value="20" min="6" max="200" required>
+          </div>
+
+          <div class="form-group">
+            <label for="width">Ancho de Cara (mm):</label>
+            <input type="number" id="width" name="width" value="12" min="1" required>
+          </div>
+
+          <div class="form-group">
+            <label for="bore">Diámetro del Eje (mm):</label>
+            <input type="number" id="bore" name="bore" value="10" min="0" required>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            📥 Descargar Script Python (.py)
+          </button>
+        </form>
+
+        <div class="card viewer-card">
+          <h2>Vista Previa 3D (Usa el ratón para girar/zoom)</h2>
+          <div id="canvas-container"></div>
+          
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="label">Diámetro Primitivo:</span>
+              <span id="calcPitch" class="value">40 mm</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">Diámetro Exterior:</span>
+              <span id="calcOuter" class="value">44 mm</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+  </div>
+
+  <div id="authModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeAuthModal">&times;</span>
+      
+      <div class="tab-buttons">
+        <button id="tabLoginBtn" class="tab-btn active" type="button">Iniciar Sesión</button>
+        <button id="tabRegisterBtn" class="tab-btn" type="button">Registrarse</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <h3>Iniciar Sesión</h3>
+        <div class="form-group">
+          <label for="loginEmail">Correo Electrónico:</label>
+          <input type="email" id="loginEmail" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Contraseña:</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+
+      <form id="registerForm" class="auth-form" style="display: none;">
+        <h3>Crear una Cuenta</h3>
+        <div class="form-group">
+          <label for="regName">Nombre Completo:</label>
+          <input type="text" id="regName" placeholder="Tu nombre" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Correo Electrónico:</label>
+          <input type="email" id="regEmail" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Contraseña:</label>
+          <input type="password" id="regPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary">Registrarse</button>
+      </form>
+    </div>
   </div>
 
   <script src="app.js"></script>
