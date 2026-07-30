@@ -1,10 +1,14 @@
 exports.preview = (req, res) => {
 
-    res.status(200).json({
-        success: true,
-        message: "Endpoint preview funcionando"
-    });
+    const dimensions = gearMath.calculateDimensions(
+        Number(req.body.module),
+        Number(req.body.teeth),
+        Number(req.body.pressureAngle || 20)
+    );
 
+    const gear = gearMath.buildGear(dimensions);
+
+    res.json(gear);
 };
 
 const gearMath = require('../services/gearMath');

@@ -1,3 +1,4 @@
+
 function calculateDimensions(mod, teeth, pressureAngle = 20) {
 
     const alpha = pressureAngle * Math.PI / 180;
@@ -20,7 +21,8 @@ function calculateDimensions(mod, teeth, pressureAngle = 20) {
 
     const addendum = mod;
     const dedendum = 1.25 * mod;
-    const wholeDepth = addendum + dedendum;
+
+    
 
     return {
         module:mod,
@@ -39,7 +41,6 @@ function calculateDimensions(mod, teeth, pressureAngle = 20) {
         toothThickness,
         addendum,
         dedendum,
-        wholeDepth
     };
 }
 
@@ -56,7 +57,7 @@ function involutePoint(baseRadius, t) {
 
 }
 
-function generateInvolute(baseRadius, outsideRadius, steps = 30) {
+function generateInvolute(baseRadius, outsideRadius, steps = 120) {
 
     const points = [];
 
@@ -90,65 +91,73 @@ function rotateCurve(points, angle) {
 
 }
 
-function buildToothSides(dimensions){
 
-    const leftSide =
-        generateInvolute( dimensions.baseRadius,dimensions.outsideRadius);
+function buildTooth(dimensions){
+
+    const involute = generateInvolute(
+
+        dimensions.baseRadius,
+
+        dimensions.outsideRadius
+
+    );
+
+    const leftSide = positionInvolute(
+
+        involute,
+
+        dimensions
+
+    );
 
     const rightSide =
-        rotateCurve( leftSide, dimensions.toothAngle);
+    buildOppositeInvolute(
+        leftSide,
+        dimensions
+    );
+
+    const tipArc = generateTipArc(
+
+        leftSide[leftSide.length - 1],
+
+        rightSide[0],
+
+        dimensions.outsideRadius
+
+    );
+
+    console.log(
+    "Left angle :",
+    pointAngle(leftSide[leftSide.length-1])
+    );
+
+    console.log(
+        "Right angle:",
+        pointAngle(rightSide[0])
+    );
 
     return {
 
-        leftSide, rightSide
+        leftSide,
+
+        tipArc,
+
+        rightSide
 
     };
 
 }
 
 
-function buildTooth(dimensions) {
+function buildGear(dimensions){
 
-    const { leftSide, rightSide } = buildToothSides(dimensions);
+    return{
 
-    const rightReversed = [...rightSide].reverse();
+        dimensions,
 
-    return [
+        gearPoints:
 
-        ...leftSide, ...rightReversed
-
-    ];
-
-}
-
-function rotateTooth(toothPoints, angle) {
-
-    return toothPoints.map(point => rotatePoint(point, angle));
-
-}
-
-function buildGear(dimensions) {
-
-    const tooth = buildTooth(dimensions);
-
-    const stepAngle = 2 * Math.PI / dimensions.teeth;
-
-    const gearPoints = [];
-
-    for(let i=0;i<dimensions.teeth;i++){
-
-        const angle = i * stepAngle;
-
-        const rotated =
-            rotateTooth( tooth,  angle);
-
-        gearPoints.push(...rotated);
-
-    }
-
-    return {
-
-        dimensions, toothPoints: tooth, gearPoints, stepAngle
+            buildGearOutline(dimensions)
 
     };
 
@@ -177,9 +186,187 @@ function positionInvolute(curve, dimensions){
 
 }
 
-function mirrorCurve(curve){
+function buildOppositeInvolute(leftCurve){
 
-    return curve.map(p=>({x:p.x,y:-p.y}));
+    return leftCurve
+        .map(p=>({
+
+            x:p.x,
+
+            y:-p.y
+
+        }))
+        .reverse();
+
+}
+
+function generateArc(radius, startAngle, endAngle, steps = 12) {
+
+    const points = [];
+
+    for (let i = 0; i <= steps; i++) {
+
+        const angle =
+            startAngle +
+            (endAngle - startAngle) * i / steps;
+
+        points.push({
+
+            x: radius * Math.cos(angle),
+
+            y: radius * Math.sin(angle)
+
+        });
+
+    }
+
+    return points;
+
+}
+
+function generateTipArc(leftPoint, rightPoint, radius, steps = 30){
+
+    let start = pointAngle(leftPoint);
+    let end = pointAngle(rightPoint);
+
+    while(end < start){
+        end += 2*Math.PI;
+    }
+
+    if(end - start > Math.PI){
+        end -= 2*Math.PI;
+    }
+
+    return generateArc(
+        radius,
+        start,
+        end,
+        steps
+    );
+
+}
+function pointAngle(point){
+
+    return Math.atan2(
+
+        point.y,
+
+        point.x
+
+    );
+
+}
+
+function generateRootArc(startPoint,endPoint,radius,steps=30){
+
+    let start = pointAngle(startPoint);
+    let end = pointAngle(endPoint);
+
+    while(end < start){
+
+        end += 2*Math.PI;
+
+    }
+
+    return generateArc(
+
+        radius,
+
+        start,
+
+        end,
+
+        steps
+
+    );
+
+}
+
+
+
+function buildGearOutline(dimensions){
+
+    const tooth = buildTooth(dimensions);
+
+    const pitchAngle =
+        2 * Math.PI / dimensions.teeth;
+
+    const outline = [];
+
+    for(let i = 0; i < dimensions.teeth; i++){
+
+        const angle = i * pitchAngle;
+
+        const rotatedLeft =
+            rotateCurve(
+                tooth.leftSide,
+                angle
+            );
+
+        const rotatedTip =
+            rotateCurve(
+                tooth.tipArc,
+                angle
+            );
+
+        const rotatedRight =
+            rotateCurve(
+                tooth.rightSide,
+                angle
+            );
+
+        const nextAngle =
+            (i + 1) * pitchAngle;
+
+        const nextLeft =
+            rotateCurve(
+                tooth.leftSide,
+                nextAngle
+            );
+
+
+        const rootArc =
+            generateRootArc(
+                rotatedRight[rotatedRight.length - 1],
+                nextLeft[0],
+                dimensions.rootRadius,
+                12
+            );
+
+        outline.push(
+            ...rotatedLeft,
+            ...rotatedTip,
+            ...rotatedRight,
+            ...rootArc
+        );
+
+    }
+
+    console.log(outline.length);
+
+    return outline;
+
+}
+
+function buildSVGPath(points) {
+
+    if (points.length === 0) {
+
+        return "";
+
+    }
+
+    let path = `M ${points[0].x} ${-points[0].y}`;
+
+    for (let i = 1; i < points.length; i++) {
+
+        path += ` L ${points[i].x} ${-points[i].y}`;
+
+    }
+
+    path += " Z";
+
+    return path;
 
 }
 
@@ -192,13 +379,17 @@ module.exports = {
     generateInvolute,
     rotatePoint,
     rotateCurve,
-    rotateTooth,
-    buildToothSides,
     buildTooth,
     buildGear,
     calculateAngles,
     positionInvolute,
-    mirrorCurve
+    generateArc,
+    generateTipArc,
+    pointAngle,
+    generateRootArc,
+    buildGearOutline,
+    buildSVGPath,
+    buildOppositeInvolute
 
 };
 
